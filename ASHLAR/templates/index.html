@@ -3,154 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar System with Enhanced Appearance</title>
+    <title>MyApp</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
-    </style>
 </head>
-<body>
-    <!-- Navbar -->
+<body class="bg-dark text-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Solar System</a>
+            <a class="navbar-brand" href="/">MyApp</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/search">Search</a>
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('search') }}">Search</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('notes') }}">Notes</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-
-    <!-- Container for the 3D Scene -->
-    <div id="container"></div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        // Add ambient lighting to enhance the appearance
-        const ambientLight = new THREE.AmbientLight(0x404040, 2); // Soft white light
-        scene.add(ambientLight);
-
-        // Add point light to simulate the sun's light
-        const pointLight = new THREE.PointLight(0xffffff, 1.5, 500);
-        scene.add(pointLight);
-
-        // Create the stars in the background
-        const starGeometry = new THREE.BufferGeometry();
-        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1, transparent: true });
-        const starVertices = [];
-
-        for (let i = 0; i < 1000; i++) {
-            const x = THREE.MathUtils.randFloatSpread(2000);
-            const y = THREE.MathUtils.randFloatSpread(2000);
-            const z = THREE.MathUtils.randFloatSpread(2000);
-            starVertices.push(x, y, z);
-        }
-
-        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-        const stars = new THREE.Points(starGeometry, starMaterial);
-        scene.add(stars);
-
-        const planets = [
-            { name: 'Mercury', size: 2, color: 0xaaaaaa, speed: 0.02 },
-            { name: 'Venus', size: 3, color: 0xffdd99, speed: 0.015 },
-            { name: 'Earth', size: 3.5, color: 0x3366ff, speed: 0.01 },
-            { name: 'Mars', size: 2.8, color: 0xff3300, speed: 0.008 },
-            { name: 'Jupiter', size: 5.4, color: 0xff9933, speed: 0.006 },
-            { name: 'Saturn', size: 4.5, color: 0xffcc66, speed: 0.004 },
-            { name: 'Uranus', size: 4, color: 0x66ccff, speed: 0.002 },
-            { name: 'Neptune', size: 4, color: 0x3333cc, speed: 0.001 },
-        ];
-
-        // Make the sun bigger and more detailed
-        const sunGeometry = new THREE.SphereGeometry(20, 64, 64);
-        const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffdd33 });
-        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-        scene.add(sun);
-
-        // Add a glowing effect to the sun
-        const sunGlowMaterial = new THREE.MeshBasicMaterial({
-            color: 0xffdd33,
-            opacity: 0.5,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-        });
-        const sunGlow = new THREE.Mesh(new THREE.SphereGeometry(25, 64, 64), sunGlowMaterial);
-        scene.add(sunGlow);
-
-        // Position the point light at the sun's location
-        pointLight.position.set(sun.position.x, sun.position.y, sun.position.z);
-
-        // Add a ring around the sun
-        const sunRingGeometry = new THREE.RingGeometry(60, 65, 64);
-        const sunRingMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, opacity: 0.2, transparent: true });
-        const sunRing = new THREE.Mesh(sunRingGeometry, sunRingMaterial);
-        sunRing.rotation.x = Math.PI / 2;
-        scene.add(sunRing);
-
-        const orbitRadius = 100; // Set a fixed radius for the planet's orbit
-
-        planets.forEach((planet, index) => {
-            const angle = (index / planets.length) * Math.PI * 2;
-
-            const geometry = new THREE.SphereGeometry(planet.size, 64, 64);
-            const material = new THREE.MeshStandardMaterial({ color: planet.color });
-            const sphere = new THREE.Mesh(geometry, material);
-
-            const pivot = new THREE.Object3D();
-            pivot.rotation.y = angle;
-            pivot.add(sphere);
-            sphere.position.x = orbitRadius;
-            scene.add(pivot);
-
-            planet.pivot = pivot;
-
-            // Add a ring around each planet
-            const planetRingGeometry = new THREE.RingGeometry(planet.size * 1.8, planet.size * 2.2, 64);
-            const planetRingMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, opacity: 0.5, transparent: true });
-            const planetRing = new THREE.Mesh(planetRingGeometry, planetRingMaterial);
-            planetRing.rotation.x = Math.PI / 2;
-            sphere.add(planetRing); // Attach the ring to the planet
-        });
-
-        // Add a visible orbit ring that the planets follow
-        const orbitRingGeometry = new THREE.RingGeometry(orbitRadius - 0.5, orbitRadius + 0.5, 64);
-        const orbitRingMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, opacity: 0.3, transparent: true });
-        const orbitRing = new THREE.Mesh(orbitRingGeometry, orbitRingMaterial);
-        orbitRing.rotation.x = Math.PI / 2;
-        scene.add(orbitRing);
-
-        camera.position.z = 300;
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            planets.forEach(planet => {
-                planet.pivot.rotation.y += planet.speed; // Rotate the planets around the sun
-            });
-
-            renderer.render(scene, camera);
-        }
-
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+    
+    <div class="container mt-4">
+        <h1 class="text-center">Welcome to MyApp</h1>
+        <p class="text-center">Your hub for notes and searches.</p>
+        <div class="text-center">
+            <a href="{{ url_for('search') }}" class="btn btn-primary">Go to Search</a>
+            <a href="{{ url_for('notes') }}" class="btn btn-secondary">View Notes</a>
+        </div>
+    </div>
 </body>
 </html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ note['title'] }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">MyApp</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/search">Search</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/notes">Notes</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="text-center">{{ note['title'] }}</h1>
+
+        {% if note['files'] %}
+            {% for file in note['files'].split(',') %}
+                {% if file.endswith(('png', 'jpg', 'jpeg', 'gif')) %}
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename=file.split('static/')[1]) }}" class="img-fluid" alt="Note Image">
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        <p>{{ note['content'] }}</p>
+        <h5>Attachments:</h5>
+        <ul>
+            {% for file in note['files'].split(',') %}
+            <li><a href="{{ url_for('static', filename=file.split('static/')[1]) }}" download>{{ file.split('static/')[1] }}</a></li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('update_note', note_id=note['id']) }}" class="btn btn-secondary">Edit</a>
+        <form action="{{ url_for('delete_note', note_id=note['id']) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+        <a href="{{ url_for('notes') }}" class="btn btn-primary">Back to Notes</a>
+        <button onclick="exportNote()" class="btn btn-success">Export Note</button>
+    </div>
+
+    <script>
+        function exportNote() {
+            const noteTitle = "{{ note['title'] }}";
+            const noteContent = `Title: ${noteTitle}\n\nContent: {{ note['content'] }}\n\nAttachments:\n`;
+            const files = "{{ note['files'] }}".split(',');
+
+            let fileLinks = '';
+            files.forEach(file => {
+                fileLinks += `${file}\n`;
+            });
+
+            const fullNoteContent = noteContent + fileLinks;
+            const blob = new Blob([fullNoteContent], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = noteTitle + ".txt";
+            link.click();
+        }
+    </script>
+</body>
+</html>
