@@ -5,8 +5,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Logic Table</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap'); /* Example movie title font */
+
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 300px;
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            padding: 20px;
+            overflow: hidden;
+            color: #000; /* Darkened font color */
+        }
+
+        .flip-card-front {
+            background: linear-gradient(135deg, #004d00, #000000); /* Green to black gradient */
+            color: white;
+        }
+
+        .flip-card-front p {
+            font-family: 'Bangers', cursive; /* Apply movie title font */
+            font-size: 1.5rem;
+        }
+
+        .flip-card-back {
+            background-color: #6c757d;
+            transform: rotateY(180deg);
+            overflow-y: auto; /* Enable scrolling on long content */
+        }
+
+        .export-btn {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            background-color: #343a40;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .export-btn:hover {
+            background-color: #495057;
+        }
+
+        /* Adjustments for small screens */
+        @media (max-width: 768px) {
+            .flip-card {
+                height: 400px; /* Increased height for smaller screens */
+            }
+        }
+    </style>
 </head>
 <body class="bg-dark text-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">MyApp</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/search">Search</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/notes">Notes</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
     <div class="container">
         <h1 class="text-center my-5">Search Logic Table</h1>
 
@@ -25,14 +123,23 @@
         {% if results is not none %}
             <div class="row mt-5">
                 {% for row in results %}
-                    <div class="col-md-4">
-                        <div class="card bg-secondary text-light mb-3">
-                            <div class="card-body">
-                                <p><strong>ID:</strong> {{ row['id'] }}</p>
-                                <p><strong>Timestamp:</strong> {{ row['timestamp'] }}</p>
-                                <p><strong>Prompt:</strong> {{ row['prompt'] }}</p>
-                                <p><strong>Response:</strong></p>
-                                <div>{{ row['response']|safe }}</div>
+                    <div class="col-md-4 mb-4">
+                        <div class="flip-card">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <p><strong>Timestamp:</strong> {{ row['timestamp'] }}</p>
+                                    <p><strong>Prompt:</strong> {{ row['prompt'] }}</p>
+                                </div>
+                                <div class="flip-card-back">
+                                    <p><strong>Response:</strong></p>
+                                    <div>{{ row['response']|safe }}</div>
+                                    <form action="/export" method="POST">
+                                        <input type="hidden" name="prompt" value="{{ row['prompt'] }}">
+                                        <input type="hidden" name="timestamp" value="{{ row['timestamp'] }}">
+                                        <input type="hidden" name="response" value="{{ row['response'] }}">
+                                        <button type="submit" class="export-btn">Export as .txt</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
