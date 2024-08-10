@@ -1,7 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file, flash
+from flask import Flask, render_template, request, redirect, url_for, flash
 import os
 import sqlite3
-import io
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -37,14 +36,20 @@ def create_notes_table():
 def index():
     return render_template('index.html')
 
-@app.route('/notes', methods=['GET', 'POST'])
+@app.route('/notes')
 def notes():
     conn = get_db_connection()
+    notes = conn.execute('SELECT * FROM notes').fetchall()
+    conn.close()
+    return render_template('notes.html', notes=notes)
+
+@app.route('/add_note', methods=['GET', 'POST'])
+def add_note():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
         files = request.files.getlist('files')
-        
+
         file_paths = []
         for file in files:
             if file and allowed_file(file.filename):
@@ -53,15 +58,15 @@ def notes():
                 file.save(filepath)
                 file_paths.append(filepath)
 
+        conn = get_db_connection()
         conn.execute('INSERT INTO notes (title, content, files) VALUES (?, ?, ?)',
                      (title, content, ','.join(file_paths)))
         conn.commit()
+        conn.close()
         flash('Note added successfully!', 'success')
         return redirect(url_for('notes'))
 
-    notes = conn.execute('SELECT * FROM notes').fetchall()
-    conn.close()
-    return render_template('notes.html', notes=notes)
+    return render_template('add_note.html')
 
 @app.route('/note/<int:note_id>')
 def view_note(note_id):
@@ -108,6 +113,17 @@ def delete_note(note_id):
     conn.close()
     flash('Note deleted successfully!', 'success')
     return redirect(url_for('notes'))
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    if request.method == 'POST':
+        keyword = request.form.get('keyword')
+        conn = get_db_connection()
+        query = "SELECT * FROM notes WHERE title LIKE ? OR content LIKE ?"
+        results = conn.execute(query, (f"%{keyword}%", f"%{keyword}%")).fetchall()
+        conn.close()
+        return render_template('search.html', keyword=keyword, results=results)
+    return render_template('search.html')
 
 if __name__ == '__main__':
     create_notes_table()
