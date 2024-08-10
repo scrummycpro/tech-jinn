@@ -2,7 +2,7 @@
 
 # Function to create the SQLite database and table if they don't exist
 create_database() {
-  sqlite3 tech-career.db <<EOF
+  sqlite3 gemma-tech-career.db <<EOF
 CREATE TABLE IF NOT EXISTS logic (
   id INTEGER PRIMARY KEY,
   timestamp TEXT,
@@ -19,7 +19,7 @@ store_response() {
 
   # Query Ollama for a response
   response=$(curl -s http://192.168.1.115/ollama/api/generate -d '{
-    "model": "llama3.1",
+    "model": "gemma",
     "prompt": "'"in the terms of is, is not, should not be associated with explain $prompt in the form of 500 word college paper, and give some SOP and debates,controversies and keywords to associate, also include any references, the answer should explain what it is, its opposite and its associations, and antonyms; also gibe a detail mnemonic device and a detailed reverse quintain, reference the key components involved."'",
     "stream": false
   }' | jq -r .response)
@@ -29,7 +29,7 @@ store_response() {
   escaped_response=$(echo "$response" | sed "s/'/''/g")
 
   # Insert the timestamp, prompt, and response into the SQLite database
-  sqlite3 tech-career.db <<EOF
+  sqlite3 gemma-tech-career.db <<EOF
 INSERT INTO logic (timestamp, prompt, response) VALUES ('$timestamp', '$escaped_prompt', '$escaped_response');
 EOF
 }

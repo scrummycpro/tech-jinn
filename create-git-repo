@@ -1,4 +1,4 @@
 #!/bin/bash
 #create a git repo and description, to push type git push upstream
 # create-git-repo <name> <description>
-git init && git add -A && git commit -m "initial commit" && gh repo create ""$1"" --description "$2" --source=. --remote=upstream --push
+git init && git add -A && git commit -m "initial commit" && gh repo create ""$1"" --description "$2" --source=. --remote=upstream  --public --push
