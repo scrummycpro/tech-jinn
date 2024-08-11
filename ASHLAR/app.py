@@ -1,26 +1,26 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, send_file, flash, make_response
 import os
 import sqlite3
-from werkzeug.utils import secure_filename
+import io
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-ALLOWED_EXTENSIONS = {'pdf', 'txt', 'png', 'jpg', 'jpeg', 'gif', 'mp3', 'mp4'}
-
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db_connection():
     conn = sqlite3.connect('tech-career.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-def create_notes_table():
+def create_tables():
     conn = get_db_connection()
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS logic (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            prompt TEXT NOT NULL,
+            response TEXT NOT NULL
+        )
+    ''')
     conn.execute('''
         CREATE TABLE IF NOT EXISTS notes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,15 +36,24 @@ def create_notes_table():
 def index():
     return render_template('index.html')
 
-@app.route('/notes')
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    keyword = request.form.get('keyword')
+    results = None
+
+    if keyword:
+        conn = get_db_connection()
+        results = conn.execute(
+            "SELECT * FROM logic WHERE timestamp LIKE ? OR prompt LIKE ? OR response LIKE ?",
+            ('%' + keyword + '%', '%' + keyword + '%', '%' + keyword + '%')
+        ).fetchall()
+        conn.close()
+
+    return render_template('search.html', results=results, keyword=keyword)
+
+@app.route('/notes', methods=['GET', 'POST'])
 def notes():
     conn = get_db_connection()
-    notes = conn.execute('SELECT * FROM notes').fetchall()
-    conn.close()
-    return render_template('notes.html', notes=notes)
-
-@app.route('/add_note', methods=['GET', 'POST'])
-def add_note():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
@@ -54,19 +63,19 @@ def add_note():
         for file in files:
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                filepath = os.path.join('static', 'uploads', filename)
                 file.save(filepath)
                 file_paths.append(filepath)
 
-        conn = get_db_connection()
         conn.execute('INSERT INTO notes (title, content, files) VALUES (?, ?, ?)',
                      (title, content, ','.join(file_paths)))
         conn.commit()
-        conn.close()
         flash('Note added successfully!', 'success')
         return redirect(url_for('notes'))
 
-    return render_template('add_note.html')
+    notes = conn.execute('SELECT * FROM notes').fetchall()
+    conn.close()
+    return render_template('notes.html', notes=notes)
 
 @app.route('/note/<int:note_id>')
 def view_note(note_id):
@@ -92,7 +101,7 @@ def update_note(note_id):
         for file in files:
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                filepath = os.path.join('static', 'uploads', filename)
                 file.save(filepath)
                 file_paths.append(filepath)
         
@@ -114,17 +123,26 @@ def delete_note(note_id):
     flash('Note deleted successfully!', 'success')
     return redirect(url_for('notes'))
 
-@app.route('/search', methods=['GET', 'POST'])
-def search():
-    if request.method == 'POST':
-        keyword = request.form.get('keyword')
-        conn = get_db_connection()
-        query = "SELECT * FROM logic WHERE timestamp LIKE ? OR prompt LIKE ? OR response LIKE ?"
-        results = conn.execute(query, (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%")).fetchall()
-        conn.close()
-        return render_template('search.html', keyword=keyword, results=results)
-    return render_template('search.html', keyword='', results=None)
+@app.route('/export/<int:row_id>', methods=['GET'])
+def export(row_id):
+    conn = get_db_connection()
+    row = conn.execute('SELECT * FROM logic WHERE id = ?', (row_id,)).fetchone()
+    conn.close()
+
+    if row:
+        content = f"Timestamp: {row['timestamp']}\n\nPrompt: {row['prompt']}\n\nResponse:\n{row['response']}"
+        response = make_response(content)
+        response.headers['Content-Disposition'] = f'attachment; filename={row["prompt"]}.txt'
+        response.mimetype = 'text/plain'
+        return response
+    else:
+        flash('Record not found', 'danger')
+        return redirect(url_for('search'))
+
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {'pdf', 'txt', 'png', 'jpg', 'jpeg', 'gif', 'mp3', 'mp4'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 if __name__ == '__main__':
-    create_notes_table()
+    create_tables()
     app.run(debug=True)

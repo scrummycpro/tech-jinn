@@ -6,7 +6,34 @@
     <title>Search Logic Table</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap'); /* Example movie title font */
+        @font-face {
+            font-family: 'Logobloqo2';
+            src: url('static/fonts/Logobloqo2.ttf') format('truetype');
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Logobloqo2', cursive;
+            color: white;
+            background: linear-gradient(135deg, #2c3e50, #000000);
+            background-size: 200% 200%;
+            animation: gradientAnimation 10s ease infinite;
+            padding: 20px;
+            position: relative;
+        }
+
+        @keyframes gradientAnimation {
+            0% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+            100% {background-position: 0% 50%;}
+        }
+
+        .navbar-brand {
+            font-family: 'Logobloqo2', cursive;
+            font-size: 1.8rem;
+        }
 
         .flip-card {
             background-color: transparent;
@@ -38,23 +65,22 @@
             border-radius: 10px;
             padding: 20px;
             overflow: hidden;
-            color: #000; /* Darkened font color */
+            color: #fff;
         }
 
         .flip-card-front {
-            background: linear-gradient(135deg, #004d00, #000000); /* Green to black gradient */
-            color: white;
+            background: linear-gradient(135deg, #6a11cb, #2575fc); /* Blue to purple gradient */
         }
 
         .flip-card-front p {
-            font-family: 'Bangers', cursive; /* Apply movie title font */
+            font-family: 'Logobloqo2', cursive;
             font-size: 1.5rem;
         }
 
         .flip-card-back {
             background-color: #6c757d;
             transform: rotateY(180deg);
-            overflow-y: auto; /* Enable scrolling on long content */
+            overflow-y: auto;
         }
 
         .export-btn {
@@ -75,17 +101,27 @@
         /* Adjustments for small screens */
         @media (max-width: 768px) {
             .flip-card {
-                height: 400px; /* Increased height for smaller screens */
+                height: 400px;
             }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        function renderResponses() {
+            document.querySelectorAll('.response-content').forEach(function(el) {
+                el.innerHTML = marked.parse(el.textContent);
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", renderResponses);
+    </script>
 </head>
 <body class="bg-dark text-light">
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">MyApp</a>
+            <a class="navbar-brand" href="/">Ashlar</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -121,32 +157,34 @@
         </div>
 
         {% if results is not none %}
-        <div class="row mt-5">
-            {% if results %}
-                {% for row in results %}
-                    <div class="col-md-4 mb-4">
-                        <div class="flip-card">
-                            <div class="flip-card-inner">
-                                <div class="flip-card-front">
-                                    <p><strong>Timestamp:</strong> {{ row['timestamp'] }}</p>
-                                    <p><strong>Prompt:</strong> {{ row['prompt'] }}</p>
-                                </div>
-                                <div class="flip-card-back">
-                                    <p><strong>Response:</strong></p>
-                                    <div>{{ row['response']|safe }}</div>
-                                    <form action="/export" method="POST">
-                                        <input type="hidden" name="prompt" value="{{ row['prompt'] }}">
-                                        <input type="hidden" name="timestamp" value="{{ row['timestamp'] }}">
-                                        <input type="hidden" name="response" value="{{ row['response'] }}">
-                                        <button type="submit" class="export-btn">Export as .txt</button>
-                                    </form>
+            <div class="row mt-5">
+                {% if results %}
+                    {% for row in results %}
+                        <div class="col-md-4 mb-4">
+                            <div class="flip-card">
+                                <div class="flip-card-inner">
+                                    <div class="flip-card-front">
+                                        <p><strong>Timestamp:</strong> {{ row['timestamp'] }}</p>
+                                        <p><strong>Prompt:</strong> {{ row['prompt'] }}</p>
+                                    </div>
+                                    <div class="flip-card-back">
+                                        <p><strong>Response:</strong></p>
+                                        <div class="response-content">{{ row['response']|escape }}</div>
+                                        <a class="export-btn" href="{{ url_for('export', row_id=row['id']) }}">Export as .txt</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <p class="text-center">No results found.</p>
-            {% endif %}
-        </div>
-    {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center">No results found.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
