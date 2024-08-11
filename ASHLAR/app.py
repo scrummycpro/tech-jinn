@@ -119,11 +119,11 @@ def search():
     if request.method == 'POST':
         keyword = request.form.get('keyword')
         conn = get_db_connection()
-        query = "SELECT * FROM notes WHERE title LIKE ? OR content LIKE ?"
-        results = conn.execute(query, (f"%{keyword}%", f"%{keyword}%")).fetchall()
+        query = "SELECT * FROM logic WHERE timestamp LIKE ? OR prompt LIKE ? OR response LIKE ?"
+        results = conn.execute(query, (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%")).fetchall()
         conn.close()
         return render_template('search.html', keyword=keyword, results=results)
-    return render_template('search.html')
+    return render_template('search.html', keyword='', results=None)
 
 if __name__ == '__main__':
     create_notes_table()

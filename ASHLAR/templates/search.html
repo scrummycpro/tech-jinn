@@ -121,7 +121,8 @@
         </div>
 
         {% if results is not none %}
-            <div class="row mt-5">
+        <div class="row mt-5">
+            {% if results %}
                 {% for row in results %}
                     <div class="col-md-4 mb-4">
                         <div class="flip-card">
@@ -144,8 +145,8 @@
                         </div>
                     </div>
                 {% endfor %}
-            </div>
-        {% endif %}
-    </div>
-</body>
-</html>
+            {% else %}
+                <p class="text-center">No results found.</p>
+            {% endif %}
+        </div>
+    {% endif %}
