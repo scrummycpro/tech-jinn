@@ -30,6 +30,13 @@ def create_tables():
             files TEXT
         )
     ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -164,6 +171,35 @@ def add_note():
         return redirect(url_for('notes'))
 
     return render_template('add_note.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        # Implement authentication logic here
+        return redirect(url_for('index'))  # Redirect on successful login
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', 
+                         (username, password))
+            conn.commit()
+            flash('Registration successful! Please log in.', 'success')
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            flash('Username already exists. Please choose another.', 'danger')
+        finally:
+            conn.close()
+
+    return render_template('register.html')
 
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'pdf', 'txt', 'png', 'jpg', 'jpeg', 'gif', 'mp3', 'mp4'}
