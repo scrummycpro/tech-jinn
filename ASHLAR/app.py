@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, send_file,
 import os
 import sqlite3
 import io
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -138,6 +139,31 @@ def export(row_id):
     else:
         flash('Record not found', 'danger')
         return redirect(url_for('search'))
+
+@app.route('/add_note', methods=['GET', 'POST'])
+def add_note():
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        files = request.files.getlist('files')
+
+        file_paths = []
+        for file in files:
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join('static', 'uploads', filename)
+                file.save(filepath)
+                file_paths.append(filepath)
+
+        conn = get_db_connection()
+        conn.execute('INSERT INTO notes (title, content, files) VALUES (?, ?, ?)',
+                     (title, content, ','.join(file_paths)))
+        conn.commit()
+        conn.close()
+        flash('Note added successfully!', 'success')
+        return redirect(url_for('notes'))
+
+    return render_template('add_note.html')
 
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'pdf', 'txt', 'png', 'jpg', 'jpeg', 'gif', 'mp3', 'mp4'}
