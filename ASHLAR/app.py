@@ -3,6 +3,9 @@ import os
 import sqlite3
 import io
 from werkzeug.utils import secure_filename
+import urllib.request
+import json 
+import requests
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -40,9 +43,51 @@ def create_tables():
     conn.commit()
     conn.close()
 
+def fetch_random_by_topic_urllib():
+    url = "https://www.sefaria.org/api/texts/random-by-topic"
+    
+    headers = {'Accept': 'application/json'}
+    
+    req = urllib.request.Request(url, headers=headers)
+    
+    try:
+        with urllib.request.urlopen(req) as response:
+            data = response.read()
+            # Parse the JSON response
+            parsed_data = json.loads(data)
+            return parsed_data
+    except urllib.error.HTTPError as e:
+        return {'error': f"HTTP error: {e}"}
+    except urllib.error.URLError as e:
+        return {'error': f"URL error: {e}"}
+    except json.JSONDecodeError:
+        return {'error': "Failed to parse JSON response."}
+
+#
+
+# Index route to display the random text from Sefaria API using the urllib method
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        # Fetch random text data from Sefaria API
+        random_data = fetch_random_by_topic_urllib()
+
+        # Extract fields from the response
+        ref = random_data.get('ref', 'No reference available')
+        topic = random_data.get('topic', {}).get('primaryTitle', {}).get('en', 'No topic available')
+        url = random_data.get('url', 'No URL available')
+
+        # Format the random text for display
+        random_text = f"Reference: {ref}\nTopic: {topic}\nURL: https://www.sefaria.org/{url}"
+
+        print(f"Random Text: {random_text}")  # Log the fetched text
+
+    except Exception as e:
+        random_text = f"Failed to fetch data from Sefaria API: {str(e)}"
+        print(random_text)  # Log the error
+
+    # Render the template with the random text
+    return render_template('index.html', random_text=random_text)
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
