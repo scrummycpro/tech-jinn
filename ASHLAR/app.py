@@ -8,14 +8,14 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 
 def get_db_connection():
-    conn = sqlite3.connect('tech-career.db')
+    conn = sqlite3.connect('responses.db')
     conn.row_factory = sqlite3.Row
     return conn
 
 def create_tables():
     conn = get_db_connection()
     conn.execute('''
-        CREATE TABLE IF NOT EXISTS logic (
+        CREATE TABLE IF NOT EXISTS saturn (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TEXT NOT NULL,
             prompt TEXT NOT NULL,
@@ -52,7 +52,7 @@ def search():
     if keyword:
         conn = get_db_connection()
         results = conn.execute(
-            "SELECT * FROM logic WHERE timestamp LIKE ? OR prompt LIKE ? OR response LIKE ?",
+            "SELECT * FROM saturn WHERE timestamp LIKE ? OR prompt LIKE ? OR response LIKE ?",
             ('%' + keyword + '%', '%' + keyword + '%', '%' + keyword + '%')
         ).fetchall()
         conn.close()
@@ -134,7 +134,7 @@ def delete_note(note_id):
 @app.route('/export/<int:row_id>', methods=['GET'])
 def export(row_id):
     conn = get_db_connection()
-    row = conn.execute('SELECT * FROM logic WHERE id = ?', (row_id,)).fetchone()
+    row = conn.execute('SELECT * FROM saturn WHERE id = ?', (row_id,)).fetchone()
     conn.close()
 
     if row:
