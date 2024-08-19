@@ -90,6 +90,7 @@ def index():
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     keyword = request.form.get('keyword')
+    print(f"Keyword received: {keyword}")  # Debugging print statement
     results = None
 
     if keyword:
@@ -99,6 +100,11 @@ def search():
             ('%' + keyword + '%', '%' + keyword + '%', '%' + keyword + '%')
         ).fetchall()
         conn.close()
+
+        print(f"Results: {results}")  # Debugging print statement to check if results are being fetched
+
+    return render_template('search.html', results=results, keyword=keyword)
+
 
     return render_template('search.html', results=results, keyword=keyword)
 
@@ -247,6 +253,32 @@ def register():
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'pdf', 'txt', 'png', 'jpg', 'jpeg', 'gif', 'mp3', 'mp4'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
+
+@app.route('/tracing-board')
+def tracing_board():
+    try:
+        # Fetch the data from the Sefaria API
+        url = "https://www.sefaria.org/api/calendars?custom=sephardi&timezone=America/Los_Angeles"
+        headers = {'Accept': 'application/json'}
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 200:
+            data = response.json()  # Parse the JSON response
+        else:
+            data = {"error": f"Failed to fetch data: {response.status_code}"}
+        
+        # Extract the calendar items from the response
+        calendar_items = data.get("calendar_items", [])
+    except Exception as e:
+        calendar_items = [{"error": f"An error occurred: {str(e)}"}]
+
+    # Render the page with the fetched data
+    return render_template('tracing_board.html', calendar_items=calendar_items)
+
+
 
 if __name__ == '__main__':
     create_tables()
