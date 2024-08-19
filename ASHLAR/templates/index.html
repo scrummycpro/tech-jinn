@@ -6,6 +6,22 @@
     <title>Ashlar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Set background image for the body */
+        body {
+            background-image: url('/static/quarry-bg.png'); /* Path to your background image */
+            background-size: cover;  /* Ensure the image covers the whole screen */
+            background-position: center; /* Center the image */
+            background-repeat: no-repeat; /* Don't repeat the image */
+        }
+
+        /* Opaque black square for better readability */
+        .opaque-box {
+            background-color: rgba(0, 0, 0, 0.7); /* Black with opacity */
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
         /* Custom CSS for the results box */
         .result-box {
             background-color: #f8f9fa;  /* Light background color */
@@ -60,21 +76,22 @@
         </div>
     </nav>
     
-    
     <div class="container mt-4">
-        <h1 class="text-center">Welcome to the Quarries</h1>
-        <p class="text-center">Your hub for mining the quarries.</p>
-        
-        <!-- Button Container -->
-        <div class="text-center mb-5">
-            <a href="{{ url_for('search') }}" class="btn btn-primary">Go to Search</a>
-            <a href="{{ url_for('notes') }}" class="btn btn-secondary">View Notes</a>
-        </div>
-        
-        <!-- Display Random Text from Sefaria API in a styled box -->
-        <div class="result-box mx-auto">
-            <h2 class="text-center">Random Text from Sefaria API</h2>
-            <pre>{{ random_text }}</pre>
+        <div class="opaque-box">
+            <h1 class="text-center">Welcome to the Quarries</h1>
+            <p class="text-center">Your hub for mining the quarries.</p>
+            
+            <!-- Button Container -->
+            <div class="text-center mb-5">
+                <a href="{{ url_for('search') }}" class="btn btn-primary">Go to Search</a>
+                <a href="{{ url_for('notes') }}" class="btn btn-secondary">View Notes</a>
+            </div>
+            
+            <!-- Display Random Text from Sefaria API in a styled box -->
+            <div class="result-box mx-auto">
+                <h2 class="text-center">A Scribble of Light</h2>
+                <pre>{{ random_text }}</pre>
+            </div>
         </div>
     </div>
 
