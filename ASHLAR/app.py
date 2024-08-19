@@ -63,9 +63,6 @@ def fetch_random_by_topic_urllib():
     except json.JSONDecodeError:
         return {'error': "Failed to parse JSON response."}
 
-#
-
-# Index route to display the random text from Sefaria API using the urllib method
 @app.route('/')
 def index():
     try:
@@ -75,10 +72,11 @@ def index():
         # Extract fields from the response
         ref = random_data.get('ref', 'No reference available')
         topic = random_data.get('topic', {}).get('primaryTitle', {}).get('en', 'No topic available')
+        description = random_data.get('topic', {}).get('description', {}).get('en', 'No description available')
         url = random_data.get('url', 'No URL available')
 
         # Format the random text for display
-        random_text = f"Reference: {ref}\nTopic: {topic}\nURL: https://www.sefaria.org/{url}"
+        random_text = f"Reference: {ref}\nTopic: {topic}\nDescription: {description}\nURL: https://www.sefaria.org/{url}"
 
         print(f"Random Text: {random_text}")  # Log the fetched text
 
