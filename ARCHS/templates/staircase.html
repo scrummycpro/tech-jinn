@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Middle Chamber</title>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+    canvas { display: block; }
+    #infoCard {
+      display: none;
+      position: absolute;
+      background-color: rgba(255, 255, 255, 0.8);
+      border: 1px solid #000;
+      padding: 10px;
+      max-width: 200px;
+      pointer-events: none;
+    }
+    #middleChamberTitle {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      color: white;
+      opacity: 0;
+      transition: opacity 2s;
+    }
+    #nextButton {
+      position: absolute;
+      top: 50px;
+      left: 10px;
+      background-color: #8B4513;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      display: none;
+    }
+    #explanationCard {
+      display: none;
+      position: absolute;
+      top: 150px;
+      left: 10px;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border: 1px solid #000;
+      max-width: 300px;
+      opacity: 0;
+      transition: opacity 2s;
+    }
+  </style>
+</head>
+<body>
+  <div id="middleChamberTitle">The Middle Chamber</div>
+  <button id="nextButton">Enter Next Page</button>
+  <div id="infoCard"></div>
+  <div id="explanationCard">The steps represent the tables in our own personal database.</div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+
+  <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const infoCard = document.getElementById('infoCard');
+
+    const middleChamberTitle = document.getElementById('middleChamberTitle');
+    const nextButton = document.getElementById('nextButton');
+    const explanationCard = document.getElementById('explanationCard');
+
+    const masonicDefinitions = [
+      "Grammar: The study of language and its structure.",
+      "Logic: The art of reasoning.",
+      "Rhetoric: The art of persuasion.",
+      "Arithmetic: The science of numbers.",
+      "Geometry: The mathematics of space.",
+      "Music: The art of harmonious sound.",
+      "Astronomy: The study of celestial objects."
+    ];
+
+    const numSteps = 7;
+    const stepHeight = 2;
+    const radius = 5;
+    let steps = [];
+    let cameraMoving = true;
+
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+    scene.add(ambientLight);
+
+    const light = new THREE.DirectionalLight(0xffffff, 0.8);
+    light.position.set(10, 10, 10);
+    scene.add(light);
+
+    function flickerLight(light) {
+      light.intensity = 0.5 + Math.random() * 0.3;
+      setTimeout(() => flickerLight(light), 100 + Math.random() * 300);
+    }
+
+    for (let i = 0; i < numSteps; i++) {
+      const geometry = new THREE.BoxGeometry(2, 0.5, 1);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0x8B4513,
+        emissive: 0x552200,
+        emissiveIntensity: 0.5
+      });
+      const step = new THREE.Mesh(geometry, material);
+      const angle = i * (Math.PI / 4);
+      step.position.x = Math.cos(angle) * radius;
+      step.position.y = i * stepHeight;
+      step.position.z = Math.sin(angle) * radius;
+
+      // Add step name as text
+      const loader = new THREE.FontLoader();
+      loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function (font) {
+        const textGeometry = new THREE.TextGeometry(masonicDefinitions[i].split(":")[0], {
+          font: font,
+          size: 0.5,
+          height: 0.1,
+        });
+        const textMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff }); // White text
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        textMesh.position.set(step.position.x - 0.5, step.position.y + 0.75, step.position.z);
+        scene.add(textMesh);
+      });
+
+      const candleLight = new THREE.PointLight(0xffd700, 1, 10, 2);
+      candleLight.position.set(step.position.x, step.position.y + 0.75, step.position.z);
+      flickerLight(candleLight);
+      scene.add(candleLight);
+
+      steps.push(step);
+      scene.add(step);
+    }
+
+    camera.position.set(0, 0, 10);
+
+    function walkUpStairs() {
+      let currentStep = 0;
+
+      function moveToNextStep() {
+        if (currentStep < numSteps) {
+          const targetX = Math.cos(currentStep * (Math.PI / 4)) * radius;
+          const targetY = currentStep * stepHeight;
+          const targetZ = Math.sin(currentStep * (Math.PI / 4)) * radius;
+
+          new TWEEN.Tween(camera.position)
+            .to({ x: targetX, y: targetY + 2, z: targetZ + 5 }, 2000)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .onComplete(() => {
+              currentStep++;
+              if (currentStep === numSteps) {
+                zoomOutAndShowExplanation();
+              } else {
+                moveToNextStep();
+              }
+            })
+            .start();
+        }
+      }
+      moveToNextStep();
+    }
+
+    function zoomOutAndShowExplanation() {
+      new TWEEN.Tween(camera.position)
+        .to({ x: 0, y: 20, z: 30 }, 3000)
+        .easing(TWEEN.Easing.Quadratic.Out)
+        .onComplete(() => {
+          explanationCard.style.display = 'block';
+          explanationCard.style.opacity = 1;
+          nextButton.style.display = 'block';
+        })
+        .start();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      TWEEN.update();
+      renderer.render(scene, camera);
+    }
+
+    function onMouseMove(event) {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    }
+
+    function checkHover() {
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(steps);
+
+      if (intersects.length > 0) {
+        const stepIndex = steps.indexOf(intersects[0].object);
+        if (stepIndex !== -1) {
+          infoCard.style.display = 'block';
+          infoCard.style.left = `${event.clientX + 15}px`;
+          infoCard.style.top = `${event.clientY + 15}px`;
+          infoCard.innerHTML = masonicDefinitions[stepIndex];
+        }
+      } else {
+        infoCard.style.display = 'none';
+      }
+    }
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', checkHover);
+
+    walkUpStairs();
+    animate();
+
+    // Trigger fade-in for title after a short delay
+    setTimeout(() => {
+      middleChamberTitle.style.opacity = 1;
+    }, 500);
+
+  </script>
+</body>
+</html>
