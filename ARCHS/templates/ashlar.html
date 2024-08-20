@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Ashlar</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #1d1d1d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            color: white;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .definition {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            width: 300px;
+            height: 400px;
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .card:hover .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+        }
+
+        .card-front {
+            background-color: coral;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.19);
+        }
+
+        .card-back {
+            background-color: black;  /* Changed to black */
+            transform: rotateY(180deg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            font-size: 14px;
+            color: white; /* Ensure text is visible against black background */
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #ee5253;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>What is an Ashlar?</h1>
+    <div class="definition">
+        <p>An ashlar is a finely dressed stone, either an individual stone that has been worked until squared or the masonry built from it. Ashlar blocks are the most finely cut and worked masonry units used in building.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-inner">
+            <div class="card-face card-front">
+                <canvas id="ashlar"></canvas>
+            </div>
+            <div class="card-face card-back">
+                <p>
+                    <strong>Masonic Definition of Ashlar:</strong><br>
+                    According to Albert Mackey's *Encyclopedia of Masonry*, an Ashlar is a stone used in building that has been squared and smoothed. It symbolizes perfection, as it is the goal of every Mason to transform the rough Ashlar into the perfect Ashlar, representing moral and spiritual refinement.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="window.location.href='nextpage.html'">Next Page</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const canvas = document.getElementById('ashlar');
+
+        // Scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas });
+
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+
+        // Ashlar Geometry - more brick-like
+        const geometry = new THREE.BoxGeometry(2, 1, 0.5);  // Brick-like dimensions
+        const material = new THREE.MeshPhongMaterial({ color: 0x4B3D33 }); // Darker brick color with shading
+        const ashlar = new THREE.Mesh(geometry, material);
+
+        // Add lights for shading
+        const ambientLight = new THREE.AmbientLight(0x404040); // Soft ambient light
+        const pointLight = new THREE.PointLight(0xffffff, 1); // Main light
+        pointLight.position.set(2, 2, 3);
+
+        scene.add(ambientLight);
+        scene.add(pointLight);
+        scene.add(ashlar);
+
+        camera.position.z = 4;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            ashlar.rotation.x += 0.01;
+            ashlar.rotation.y += 0.01;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Adjust canvas on resize
+        window.addEventListener('resize', () => {
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        });
+    </script>
+
+</body>
+</html>
