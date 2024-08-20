@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temple of Richmack</title>
+  <style>
+    /* Basic reset and body styling */
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: black;
+      font-family: 'Creepster', cursive;
+      text-align: center;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+
+    /* Center content container */
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: white;
+    }
+
+    /* Darker glowing background effect */
+    .background-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 69, 0, 0.1), rgba(0, 0, 0, 0));
+      transform: translate(-50%, -50%);
+      animation: pulse 3s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 0.4;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    /* Glowing eerie title with animation */
+    .arc-text {
+      font-size: 5em; /* Increased font size */
+      letter-spacing: 0.1em;
+      text-shadow: 0px 0px 15px rgba(255, 69, 0, 0.8), 0px 0px 30px rgba(255, 165, 0, 0.8);
+      margin-bottom: 5px;
+      animation: glow 2s infinite alternate, fadeInUp 1.5s ease-out;
+    }
+
+    @keyframes glow {
+      0%, 100% {
+        text-shadow: 0px 0px 15px rgba(255, 69, 0, 0.8), 0px 0px 30px rgba(255, 165, 0, 0.8);
+      }
+      50% {
+        text-shadow: 0px 0px 30px rgba(255, 165, 0, 1), 0px 0px 40px rgba(255, 69, 0, 1);
+      }
+    }
+
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Flame */
+    .flame {
+      width: 200px;
+      height: auto;
+      animation: flicker 1s infinite ease-in-out;
+    }
+
+    @keyframes flicker {
+      0% { transform: scale(1) translateY(0); opacity: 1; }
+      25% { transform: scale(1.02) translateY(-2px); opacity: 0.95; }
+      50% { transform: scale(1.05) translateY(-4px); opacity: 0.9; }
+      75% { transform: scale(1.03) translateY(-3px); opacity: 0.97; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    /* Glass-style button */
+    .glass-button {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 20px 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 30px;
+      backdrop-filter: blur(10px);
+      color: white;
+      font-size: 2em;
+      text-decoration: none;
+      text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      animation: fadeInUp 2s ease-out;
+    }
+
+    .glass-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.8);
+    }
+
+    /* Responsive design */
+    @media screen and (max-width: 768px) {
+      .arc-text {
+        font-size: 3.5em; /* Smaller on mobile */
+      }
+      .glass-button {
+        font-size: 1.5em; /* Adjust button size for mobile */
+        padding: 15px 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="background-glow"></div>
+
+  <div class="container">
+    <!-- Animated title -->
+    <div class="arc-text">Temple of Richmack</div>
+
+    <!-- SVG flame -->
+    <svg
+       class="flame"
+       viewBox="0 0 210 297"
+       xmlns="http://www.w3.org/2000/svg">
+      <g id="layer1">
+        <g
+           transform="matrix(0.81686816,0,0,0.90046821,-221.55687,-71.008207)">
+          <path
+             style="clip-rule:evenodd;fill:#fc8215;fill-rule:evenodd"
+             d="m 438.931,180.996 c -0.426,-0.478 -0.696,-0.758 -0.76,-0.83 0.082,0.063 0.389,0.343 0.76,0.83 z"
+             id="path243" />
+          <path
+             style="clip-rule:evenodd;fill:#fc8215;fill-rule:evenodd"
+             d="m 425.527,240.083 c -0.262,-0.289 -0.415,-0.46 -0.46,-0.505 0.045,0.036 0.235,0.208 0.46,0.505 z"
+             id="path245" />
+          <linearGradient
+             id="SVGID_00000088830078634189900970000011254722472403781804_"
+             gradientUnits="userSpaceOnUse"
+             x1="397.15601"
+             y1="97.533203"
+             x2="397.15601"
+             y2="360.2778">
+            <stop
+               offset="0"
+               style="stop-color:#FFF200"
+               id="stop247" />
+            <stop
+               offset="1"
+               style="stop-color:#FF7F00"
+               id="stop249" />
+          </linearGradient>
+          <path
+             style="clip-rule:evenodd;fill:url(#SVGID_00000088830078634189900970000011254722472403781804_);fill-rule:evenodd"
+             d="m 453.739,354.764 c 12.175,-6.994 23.376,-19.015 22.617,-39.096 -1.345,-35.685 -9.621,-50.838 -9.621,-50.838 -0.415,17.762 -20.956,27.093 -20.956,27.093 0,0 -2.12,-19.711 -21.642,-42.932 -19.513,-23.221 -23.97,-42.94 -23.97,-42.94 -47.806,35.54 -24.62,82.027 -22.473,91.531 -17.454,-0.262 -34.909,-33.953 -34.909,-33.953 -5.423,43.717 16.867,60.513 16.867,60.513 -5.604,2.545 -27.995,-5.767 -27.995,-5.767 3.989,24.422 21.335,36.335 40.288,41.903 -33.673,-6.913 -69.827,-28.392 -79.096,-86.775 0,0 18.772,25.09 28.113,20.848 0,0 -40.45,-42.895 17.499,-107.253 0,0 -4.873,49.294 12.572,62.985 -3.583,-15.83 -16.092,-93.31 63.59,-152.55 0,0 -18.717,32.86 13.809,71.568 32.536,38.708 36.064,71.559 36.064,71.559 0,0 15.053,-12.951 15.73,-42.553 0,0 18.907,20.071 21.154,79.556 1.735,45.766 -25.493,67.959 -47.641,77.101 z"
+             id="path252" />
+          <linearGradient
+             id="SVGID_00000148647118984115253490000015759923626397863583_"
+             gradientUnits="userSpaceOnUse"
+             x1="409.73569"
+             y1="269.7554"
+             x2="409.73569"
+             y2="362.65302">
+            <stop
+               offset="0"
+               style="stop-color:#FFE000"
+               id="stop254" />
+            <stop
+               offset="1"
+               style="stop-color:#FF4800"
+               id="stop256" />
+          </linearGradient>
+          <path
+             style="clip-rule:evenodd;fill:url(#SVGID_00000148647118984115253490000015759923626397863583_);fill-rule:evenodd"
+             d="m 455.493,341.747 c -4.686,11.075 -23.815,19.268 -31.329,20.328 0,0 -55.277,6.543 -64.979,-24.368 0,0 18.166,4.431 21.529,2.901 0,0 -12.278,-6.06 -15.212,-31.781 0,0 19.983,14.962 30.459,15.117 -1.287,-5.698 -14.909,-32.862 13.775,-54.188 0,0 -2.041,11.831 9.668,25.765 11.712,13.934 15.14,23.46 15.14,23.46 0,0 10.153,-0.451 24.367,-18.952 0,-0.002 4.756,22.395 -3.418,41.718 z"
+             id="path259" />
+        </g>
+      </g>
+    </svg>
+
+    <!-- Glass button -->
+    <a href="#" class="glass-button">Enter Here</a>
+  </div>
+
+</body>
+</html>

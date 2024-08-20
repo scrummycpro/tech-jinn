@@ -12,6 +12,10 @@
             background-size: cover;  /* Ensure the image covers the whole screen */
             background-position: center; /* Center the image */
             background-repeat: no-repeat; /* Don't repeat the image */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure the body covers the full viewport height */
         }
 
         /* Opaque black square for better readability */
@@ -20,6 +24,11 @@
             padding: 30px;
             border-radius: 10px;
             margin-top: 20px;
+        }
+
+        /* Main content area, flex-grow ensures it grows to take up space */
+        .container {
+            flex-grow: 1;
         }
 
         /* Custom CSS for the results box */
@@ -45,9 +54,27 @@
             word-wrap: break-word;  /* Ensure long words wrap correctly */
             font-size: 1rem;        /* Adjust font size for better readability */
         }
+
+        /* Sticky footer styling */
+        footer {
+            background-color: #343a40;
+            color: #ffffff;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: auto; /* Push footer to the bottom */
+        }
+
+        footer a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: #adb5bd; /* Lighter gray on hover */
+        }
     </style>
 </head>
-<body class="bg-dark text-light">
+<body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">The Quarries</a>
@@ -94,6 +121,12 @@
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Ashlar - All rights reserved</p>
+        <p>Contact: <a href="mailto:iamrichmack111@gmail.com">iamrichmack111@gmail.com</a></p>
+    </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
