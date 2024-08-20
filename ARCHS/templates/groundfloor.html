@@ -3,16 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Temple of Richmack - Scroll Zoom</title>
+    <title>Temple of Richmack - Slow Zoom and Black Text</title>
     <style>
         body { margin: 0; }
         canvas { display: block; }
+        .overlay {
+            display: none; /* Hidden initially */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-family: Arial, sans-serif;
+            color: black; /* Changed text color to black */
+        }
+        h1 {
+            font-size: 48px;
+            margin: 0;
+        }
+        p {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: gold;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: orange;
+        }
     </style>
 </head>
 <body>
 
+<div class="overlay" id="overlay">
+    <h2>The Ground Floor</h2>
+    <p>Gather Your Ashlars</p>
+    <button onclick="window.location.href='https://example.com'">Enter Here</button>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
     // Scene Setup
@@ -21,8 +54,7 @@
 
     // Camera Setup
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 40, 30);  // Initial position
-    camera.lookAt(0, 0, 0);
+    camera.position.set(0, 1.8, 10);  // Start closer to the ground (1.8 is typical human height in meters)
 
     // Renderer Setup
     const renderer = new THREE.WebGLRenderer();
@@ -30,17 +62,12 @@
     document.body.appendChild(renderer.domElement);
 
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0x404040); 
+    const ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
 
     const pointLight = new THREE.PointLight(0xffffff, 1, 100);
     pointLight.position.set(10, 20, 10);
     scene.add(pointLight);
-
-    // OrbitControls for Zoom and Rotation
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableZoom = true;  // Enable zoom on scroll
-    controls.zoomSpeed = 0.5;    // Control zoom speed
 
     // Create Larger Chessboard (16x16)
     const boardSize = 16;
@@ -64,11 +91,31 @@
     base.position.set(0, -0.5, 0);
     scene.add(base);
 
-    // Render the Scene
+    // Variables for Zoom and Spin Animation
+    let zoomIn = true;
+    const zoomSpeed = 0.02;  // Slower zoom speed
+    const minZoom = 0.2;  // Extremely close to the ground, like standing on it
+
+    let animationPaused = false; // Control animation state
+
+    // Animation Loop
     function animate() {
-        requestAnimationFrame(animate);
-        controls.update();  // Update controls for interaction
-        renderer.render(scene, camera);
+        if (!animationPaused) {
+            requestAnimationFrame(animate);
+
+            // Zoom in and stop at the ground level
+            if (zoomIn) {
+                camera.position.z -= zoomSpeed;  // Slower zoom
+                if (camera.position.z <= minZoom) {
+                    zoomIn = false;  // Stop zooming
+                    animationPaused = true;  // Pause animation
+                    showOverlay();  // Show the overlay with words and button
+                }
+            }
+
+            camera.lookAt(0, 0, 0);  // Keep the camera focused on the chessboard
+            renderer.render(scene, camera);
+        }
     }
 
     animate();
@@ -80,6 +127,11 @@
         camera.updateProjectionMatrix();
     });
 
+    // Show overlay function
+    function showOverlay() {
+        const overlay = document.getElementById('overlay');
+        overlay.style.display = 'block';  // Show the overlay
+    }
 </script>
 
 </body>
