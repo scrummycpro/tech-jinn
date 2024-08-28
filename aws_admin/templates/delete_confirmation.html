@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="mt-4">Are you sure you want to delete {{ user_name }}?</h2>
+<form method="post">
+    <button type="submit" name="confirm" value="Yes" class="btn btn-danger">Yes</button>
+    <a href="{{ url_for('list_users') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

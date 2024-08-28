@@ -1,23 +1,20 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Last 50 Created Users</h2>
-    <div class="row">
-        {% for user in users %}
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">{{ user[0] }}</h5>
-                    <p class="card-text">
-                        Bucket Name: {{ user[1] }}<br>
-                        Status: {{ user[2] }}
-                    </p>
-                    <a href="{{ url_for('export_credentials', user_name=user[0]) }}" class="btn btn-primary">Export Credentials</a>
-                </div>
+<h2 class="mt-4">Last 50 Created Users</h2>
+<div class="row">
+    {% for user in users %}
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Username: {{ user[0] }}</h5>
+                <p class="card-text">Bucket Name: {{ user[1] }}</p>
+                <p class="card-text">Status: {{ user[2] }}</p>
+                <a href="{{ url_for('export_credentials', user_name=user[0]) }}" class="btn btn-primary">Export Credentials</a>
+                <a href="{{ url_for('delete_user', user_name=user[0]) }}" class="btn btn-danger">Delete</a>
             </div>
         </div>
-        {% endfor %}
     </div>
+    {% endfor %}
 </div>
 {% endblock %}
