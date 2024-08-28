@@ -113,7 +113,7 @@ class UserManager:
 
             if row:
                 user_id, bucket_name = row
-                
+
                 # Attempt to delete the S3 bucket and its contents
                 try:
                     s3_resource = boto3.resource('s3')
@@ -123,7 +123,16 @@ class UserManager:
                     print(f"Bucket {bucket_name} deleted successfully.")
                 except Exception as e:
                     print(f"Error deleting bucket {bucket_name}: {e}")
-                
+
+                # Attempt to delete the IAM user's access keys
+                try:
+                    access_keys = self.iam.list_access_keys(UserName=user_name)
+                    for access_key in access_keys['AccessKeyMetadata']:
+                        self.iam.delete_access_key(UserName=user_name, AccessKeyId=access_key['AccessKeyId'])
+                        print(f"Deleted access key {access_key['AccessKeyId']} for user {user_name}.")
+                except Exception as e:
+                    print(f"Error deleting access keys for user {user_name}: {e}")
+
                 # Attempt to delete IAM user policies
                 try:
                     policies = self.iam.list_user_policies(UserName=user_name)
