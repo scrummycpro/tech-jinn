@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Delete AWS User and S3 Bucket</h2>
+<form method="post" class="mt-4">
+    <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <button type="submit" class="btn btn-danger">Delete User</button>
+</form>
+{% endblock %}
