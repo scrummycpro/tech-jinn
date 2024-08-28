@@ -1,53 +1,31 @@
-import boto3
 import sqlite3
+import boto3
 import os
 import random
 import json
 from datetime import datetime
-import sys
 
 class UserManager:
     def __init__(self, db_name="user_management.db"):
-        # Initialize Boto3 clients
+        self.db_name = db_name
         self.iam = boto3.client('iam')
         self.s3 = boto3.client('s3')
-        self.sts = boto3.client('sts')
 
-        # Initialize SQLite database
-        self.db_name = db_name
-        self.conn = sqlite3.connect(self.db_name)
-        self.cursor = self.conn.cursor()
-
-        # Create the users table if it doesn't exist
-        self._create_table()
-
-    def _create_table(self):
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT,
-            user_name TEXT,
-            bucket_name TEXT,
-            access_key_id TEXT,
-            secret_access_key TEXT,
-            timestamp TEXT,
-            status TEXT
-        )''')
-        self.conn.commit()
-        print("Database and table are ready.")
+    def _get_connection(self):
+        return sqlite3.connect(self.db_name, check_same_thread=False)
 
     def create_user_and_bucket(self, user_name):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
         try:
             # Generate a random user ID
             user_id = str(random.randint(100000, 999999))
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
             # Create IAM user
-            try:
-                user = self.iam.create_user(UserName=user_name)
-                print(f"User {user_name} created successfully.")
-            except self.iam.exceptions.EntityAlreadyExistsException:
-                print(f"User {user_name} already exists.")
-                return
+            user = self.iam.create_user(UserName=user_name)
+            print(f"User {user_name} created successfully.")
 
             # Create S3 bucket
             bucket_name = f"{user_id}-bucket".lower()
@@ -92,106 +70,83 @@ class UserManager:
             print(f"Access keys created for user {user_name}.")
 
             # Save the user information in the SQLite database
-            self.cursor.execute('''INSERT INTO users (user_id, user_name, bucket_name, access_key_id, secret_access_key, timestamp, status)
-                                VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                                (user_id, user_name, bucket_name, access_key_id, secret_access_key, timestamp, 'active'))
-            self.conn.commit()
+            cursor.execute('''INSERT INTO users (user_id, user_name, bucket_name, access_key_id, secret_access_key, timestamp, status)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                            (user_id, user_name, bucket_name, access_key_id, secret_access_key, timestamp, 'active'))
+            conn.commit()
             print(f"User {user_name} information saved in database.")
-
-            # Save the access keys locally
-            with open(f"{user_name}_access_keys.txt", "w") as f:
-                f.write(f"AWS Access Key ID: {access_key_id}\n")
-                f.write(f"AWS Secret Access Key: {secret_access_key}\n")
-            print(f"Access keys saved locally as {user_name}_access_keys.txt.")
 
         except Exception as e:
             print(f"An error occurred: {e}")
+        finally:
+            conn.close()
+
+    def get_last_50_users(self):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT user_name, bucket_name, status, access_key_id, secret_access_key FROM users ORDER BY id DESC LIMIT 50")
+        users = cursor.fetchall()
+        conn.close()
+        return users
+
+    def export_user_credentials_to_csv(self, user_name, csv_filename):
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT access_key_id, secret_access_key FROM users WHERE user_name=?", (user_name,))
+        user = cursor.fetchone()
+        conn.close()
+
+        if user:
+            with open(csv_filename, 'w') as csv_file:
+                csv_file.write(f"UserName,AWS Access Key ID,AWS Secret Access Key\n")
+                csv_file.write(f"{user_name},{user[0]},{user[1]}\n")
+            return csv_filename
+        return None
 
     def destroy_user(self, user_name):
+        conn = self._get_connection()
+        cursor = conn.cursor()
         try:
             # Fetch user information from the database
-            self.cursor.execute("SELECT user_id, bucket_name FROM users WHERE user_name=? AND status='active'", (user_name,))
-            row = self.cursor.fetchone()
+            cursor.execute("SELECT user_id, bucket_name FROM users WHERE user_name=? AND status='active'", (user_name,))
+            row = cursor.fetchone()
 
             if row:
                 user_id, bucket_name = row
-
-                # Delete the S3 bucket and its contents
+                
+                # Attempt to delete the S3 bucket and its contents
                 try:
-                    print(f"Attempting to delete objects in bucket {bucket_name}...")
-
-                    # Initialize the S3 resource to delete objects
                     s3_resource = boto3.resource('s3')
                     bucket = s3_resource.Bucket(bucket_name)
-
-                    # Delete all objects in the bucket
                     bucket.objects.all().delete()
-                    print(f"All objects in bucket {bucket_name} deleted successfully.")
-
-                    # Delete the bucket itself
-                    self.s3.delete_bucket(Bucket=bucket_name)
+                    bucket.delete()
                     print(f"Bucket {bucket_name} deleted successfully.")
                 except Exception as e:
                     print(f"Error deleting bucket {bucket_name}: {e}")
-
-                # Detach and delete all inline policies from the IAM user
+                
+                # Attempt to delete IAM user policies
                 try:
-                    print(f"Attempting to delete inline policies for user {user_name}...")
-                    
-                    # List all inline policies
                     policies = self.iam.list_user_policies(UserName=user_name)
                     for policy_name in policies['PolicyNames']:
-                        print(f"Deleting inline policy {policy_name} from user {user_name}...")
-                        # Delete each inline policy
                         self.iam.delete_user_policy(UserName=user_name, PolicyName=policy_name)
                         print(f"Deleted policy {policy_name} from user {user_name}.")
                 except Exception as e:
-                    print(f"Error deleting inline policies for user {user_name}: {e}")
+                    print(f"Error deleting policies for user {user_name}: {e}")
 
-                # Detach managed policies from the IAM user
+                # Attempt to delete the IAM user
                 try:
-                    print(f"Attempting to detach managed policies for user {user_name}...")
-                    
-                    attached_policies = self.iam.list_attached_user_policies(UserName=user_name)
-                    for policy in attached_policies['AttachedPolicies']:
-                        print(f"Detaching managed policy {policy['PolicyName']} from user {user_name}...")
-                        self.iam.detach_user_policy(UserName=user_name, PolicyArn=policy['PolicyArn'])
-                        print(f"Detached managed policy {policy['PolicyName']} from user {user_name}.")
-                except Exception as e:
-                    print(f"Error detaching managed policies for user {user_name}: {e}")
-
-                # Delete the IAM user
-                try:
-                    print(f"Attempting to delete IAM user {user_name}...")
-                    
                     self.iam.delete_user(UserName=user_name)
                     print(f"User {user_name} deleted successfully.")
                 except Exception as e:
                     print(f"Error deleting user {user_name}: {e}")
 
-                # Update the status in the database
-                self.cursor.execute("UPDATE users SET status='disabled' WHERE user_name=?", (user_name,))
-                self.conn.commit()
-                print(f"User {user_name} marked as disabled in the database.")
+                # Update the status in the database to 'disabled'
+                cursor.execute("UPDATE users SET status='disabled' WHERE user_name=?", (user_name,))
+                conn.commit()
+                print(f"User {user_name} status updated to 'disabled' in the database.")
             else:
                 print(f"User {user_name} not found or already disabled.")
-
         except Exception as e:
             print(f"An error occurred during user deletion: {e}")
-
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: python aws_user_manager.py <create|delete> <username>")
-        sys.exit(1)
-
-    action = sys.argv[1].lower()
-    user_name = sys.argv[2]
-
-    manager = UserManager()
-
-    if action == "create":
-        manager.create_user_and_bucket(user_name)
-    elif action == "delete":
-        manager.destroy_user(user_name)
-    else:
-        print("Unknown action. Use 'create' or 'delete'.")
+        finally:
+            conn.close()
