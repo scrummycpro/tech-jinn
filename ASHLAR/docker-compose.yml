@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  the-quarries:
+    image: ghcr.io/scrummycpro/the-quarries:latest
+    container_name: the-quarries
+    restart: always
+    ports:
+      - "3033:5005"
+    volumes:
+      - ./responses:/app/responses
+    environment:
+      - FLASK_ENV=production
