@@ -5,13 +5,14 @@ FROM debian:bullseye-slim
 ENV PYTHONUNBUFFERED=1
 
 # Install dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update -o Acquire::Retries=3 && \
+    apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
-    sqlite3 \
-    && apt-get clean
+    sqlite3 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create and set the working directory
+# Set the working directory
 WORKDIR /app
 
 # Copy the requirements.txt file and install Python dependencies
