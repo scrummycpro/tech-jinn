@@ -115,3 +115,22 @@ This project is licensed under the MIT License.
 ---
 
 This README provides clear instructions on deploying the application with Docker and Docker Compose, as well as a summary of how to use the application and its features.
+
+# Kubernetes
+
+The container needs this command to run 
+
+```sh
+docker buildx create --use
+docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/scrummycpro/the-quarries:latest --push .
+
+```
+## Then :
+
+```sh
+kubectl delete pod the-quarries-pod
+kubectl run the-quarries-pod --image=ghcr.io/scrummycpro/the-quarries:latest \
+  --image-pull-policy=Always \
+  --overrides='{ "spec": { "imagePullSecrets": [{ "name": "ghcr-secret" }] } }'
+
+```
